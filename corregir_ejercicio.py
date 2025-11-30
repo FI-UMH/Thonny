@@ -367,7 +367,10 @@ def main():
         messagebox.showerror("Error", "No hay ningún editor activo.")
         return
 
-    codigo = ed.get_text()
+    try:
+        codigo = ed.get_text_widget().get("1.0", "end-1c")
+    except:
+        codigo = ""   # por seguridad, pero no debería ocurrir
     dni, ejercicio = _extraer_ejercicio_y_dni(codigo)
 
     if not ejercicio:
