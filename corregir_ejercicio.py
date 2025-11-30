@@ -227,6 +227,8 @@ def _corregir_programa(codigo, ejercicio, tests):
                     + "\n".join(f"{k} → {v}" for k, v in files_exp.items())
                 )
                 errores.append(msg)
+                _mostrar_error_scroll("Resultado de la corrección", errores)
+                return  # detener ejecución de más tests
             else:
                 aciertos += 1
 
@@ -343,7 +345,8 @@ def _corregir_funcion(codigo, ejercicio, tests):
                     + "\n".join(f"{k} → {v}" for k, v in filesEnd_exp.items())
                 )
                 errores.append(msg)
-
+                _mostrar_error_scroll("Resultado de la corrección", errores)
+                return  # detener ejecución de más tests
             else:
                 aciertos += 1
 
