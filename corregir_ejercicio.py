@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 corregir_ejercicio.py
-Versión independiente y modular para FI-UMH/Thonny
+Versión final para FI-UMH/Thonny
 
 Este módulo:
 - Descarga tests.json (solo la primera vez)
-- Corrige ejercicios pXXX (programa completo)
+- Corrige ejercicios pXXX (programa)
 - Corrige ejercicios fXXX (funciones)
-- Muestra resultados con ventana scroll
+- Muestra error SOLO en el primer test fallado
+- Válido para Thonny 4.x
 """
 
 import sys
@@ -19,7 +20,6 @@ import tempfile
 import subprocess
 import importlib.util
 import io
-import traceback
 from contextlib import redirect_stdout
 from unittest.mock import patch
 
@@ -29,58 +29,17 @@ import tkinter.font as tkfont
 
 
 # -------------------------------------------------------------------------
-# CONFIGURACIÓN
+# CONFIG
 # -------------------------------------------------------------------------
 
 TESTS_URL = "https://raw.githubusercontent.com/FI-UMH/Thonny/main/tests.json"
-
 _PAREN_RE = re.compile(r"\([^()]*\)")
-
 _TESTS_CACHE = None
 
 
 # -------------------------------------------------------------------------
-# CARGA DEL tests.json (solo 1 vez)
+# UTILIDADES DE INTERFAZ
 # -------------------------------------------------------------------------
-
-def _descargar_tests():
-    global _TESTS_CACHE
-    if _TESTS_CACHE is not None:
-        return _TESTS_CACHE
-
-    try:
-        with urllib.request.urlopen(TESTS_URL) as resp:
-            data = resp.read().decode("utf-8")
-            _TESTS_CACHE = json.loads(data)
-            return _TESTS_CACHE
-    except Exception as e:
-        messagebox.showerror("Error", f"No se pudo descargar tests.json:\n{e}")
-        return {}
-
-
-# -------------------------------------------------------------------------
-# UTILIDADES
-# -------------------------------------------------------------------------
-
-def _decode_bytes(b: bytes) -> str:
-    for enc in ("utf-8", "utf-8-sig", "latin-1"):
-        try:
-            return b.decode(enc)
-        except:
-            pass
-    return b.decode("utf-8", errors="replace")
-
-
-def _paren_counter(s: str):
-    raw = _PAREN_RE.findall(s or "")
-    norm = []
-    for tok in raw:
-        inside = tok[1:-1]
-        clean = re.sub(r"\s+", "", inside)
-        norm.append("(" + clean + ")")
-    from collections import Counter
-    return Counter(norm)
-
 
 def _mostrar_error_scroll(titulo, mensaje):
     win = Toplevel()
@@ -103,7 +62,6 @@ def _mostrar_error_scroll(titulo, mensaje):
     base = tkfont.Font(font=txt["font"])
     bold = base.copy()
     bold.configure(weight="bold")
-
     txt.tag_configure("titulo", font=bold)
 
     for palabra in ("CONTEXTO INICIAL", "RESULTADO OBTENIDO", "RESULTADO CORRECTO"):
@@ -119,24 +77,54 @@ def _mostrar_error_scroll(titulo, mensaje):
     txt.config(state="disabled")
 
 
-def _extraer_ejercicio_y_dni(codigo):
-    dni = None
-    ejercicio = None
+# -------------------------------------------------------------------------
+# TESTS
+# -------------------------------------------------------------------------
 
+def _descargar_tests():
+    global _TESTS_CACHE
+    if _TESTS_CACHE is not None:
+        return _TESTS_CACHE
+
+    try:
+        with urllib.request.urlopen(TESTS_URL, timeout=5) as resp:
+            data = resp.read().decode("utf-8")
+            _TESTS_CACHE = json.loads(data)
+            return _TESTS_CACHE
+    except Exception as e:
+        messagebox.showerror("Error", f"No se pudo descargar tests.json:\n{e}")
+        return None  # <<--- IMPORTANTE
+
+
+# -------------------------------------------------------------------------
+# UTILIDADES DE EJECUCIÓN
+# -------------------------------------------------------------------------
+
+def _decode_bytes(b: bytes) -> str:
+    for enc in ("utf-8", "utf-8-sig", "latin-1"):
+        try:
+            return b.decode(enc)
+        except:
+            pass
+    return b.decode("utf-8", errors="replace")
+
+
+def _paren_counter(s: str):
+    raw = _PAREN_RE.findall(s or "")
+    norm = [ "(" + re.sub(r"\s+", "", tok[1:-1]) + ")" for tok in raw ]
+    from collections import Counter
+    return Counter(norm)
+
+
+def _extraer_ejercicio_y_dni(codigo):
     dni_m = re.search(r"^\s*#\s*DNI\s*=\s*(.+)$", codigo, re.MULTILINE)
     ej_m  = re.search(r"^\s*#\s*EJERCICIO\s*=\s*(.+)$", codigo, re.MULTILINE)
-
-    if dni_m:
-        dni = dni_m.group(1).strip()
-
-    if ej_m:
-        ejercicio = ej_m.group(1).strip()
-
-    return dni, ejercicio
+    dni = dni_m.group(1).strip() if dni_m else None
+    ej  = ej_m.group(1).strip() if ej_m else None
+    return dni, ej
 
 
 def _preprocesar_codigo(src: str) -> str:
-    """Transforma input() en inputt() mostrando lo introducido."""
     src_mod = re.sub(r"input\s*\(", "inputt(", src)
     cabecera = (
         "def inputt(msg=''):\n"
@@ -153,90 +141,79 @@ def _preprocesar_codigo(src: str) -> str:
 
 def _corregir_programa(codigo, ejercicio, tests):
     aciertos = 0
-    errores = []
 
-    # Guardar código en archivo temporal
     with tempfile.TemporaryDirectory() as tmp:
         ruta_mod = os.path.join(tmp, "alumno.py")
         with open(ruta_mod, "w", encoding="utf-8") as f:
             f.write(_preprocesar_codigo(codigo))
 
-        for idx, test in enumerate(tests, start=1):
-            stdin_val = test.get("stdin", "")
-            files_ini = test.get("filesIni", {})
-            stdout_exp = test.get("stdout", "")
-            files_exp = test.get("filesEnd", {})
+        for idx, test in enumerate(tests, 1):
+            stdin_val = test["stdin"]
+            files_ini = test["filesIni"]
+            stdout_exp = test["stdout"]
+            files_exp  = test["filesEnd"]
 
             with tempfile.TemporaryDirectory() as work:
-                # Inicializar ficheros
                 for nom, txt in files_ini.items():
                     ruta = os.path.join(work, nom)
                     os.makedirs(os.path.dirname(ruta) or work, exist_ok=True)
-                    with open(ruta, "w", encoding="utf-8") as f:
-                        f.write(txt)
+                    with open(ruta, "w", encoding="utf-8") as fw:
+                        fw.write(txt)
 
-                # Ejecutar programa
                 try:
                     completed = subprocess.run(
                         [sys.executable, ruta_mod],
                         cwd=work,
-                        input=stdin_val.encode("utf-8"),
+                        input=stdin_val.encode(),
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
                         timeout=5
                     )
                 except subprocess.TimeoutExpired:
-                    errores.append(f"Test {idx}: Tiempo excedido.")
-                    continue
+                    _mostrar_error_scroll(
+                        "Resultado de la corrección",
+                        f"Tiempo excedido en el test {idx}"
+                    )
+                    return
 
                 stdout_obt = _decode_bytes(completed.stdout)
 
-                # ficheros finales
                 files_end = {}
                 for nom in os.listdir(work):
                     p = os.path.join(work, nom)
                     if os.path.isfile(p):
-                        with open(p, "r", encoding="utf-8", errors="replace") as f:
-                            files_end[nom] = f.read()
+                        with open(p, "r", encoding="utf-8", errors="replace") as fr:
+                            files_end[nom] = fr.read()
 
-            diferencias = []
-            if _paren_counter(stdout_obt) != _paren_counter(stdout_exp):
-                diferencias.append("- La salida por pantalla no coincide.")
-            if files_end != files_exp:
-                diferencias.append("- Los ficheros finales no coinciden.")
+            if _paren_counter(stdout_obt) != _paren_counter(stdout_exp) or files_end != files_exp:
 
-            if diferencias:
                 msg = (
                     f"El ejercicio NO supera el test {idx}.\n\n"
                     "▶ CONTEXTO INICIAL\n"
                     "─────── Teclado ───────\n"
                     f"{stdin_val}\n"
-                    "─────── Ficheros ───────\n"
-                    + "\n".join(f"{k} → {v}" for k, v in files_ini.items()) +
+                    "─────── Ficheros ───────\n" +
+                    "\n".join(f"{k} → {v}" for k, v in files_ini.items()) +
                     "\n\n"
                     "▶ RESULTADO OBTENIDO\n"
                     "─────── Pantalla ───────\n"
                     f"{stdout_obt}\n"
-                    "─────── Ficheros ───────\n"
-                    + "\n".join(f"{k} → {v}" for k, v in files_end.items()) +
+                    "─────── Ficheros ───────\n" +
+                    "\n".join(f"{k} → {v}" for k, v in files_end.items()) +
                     "\n\n"
                     "▶ RESULTADO CORRECTO\n"
                     "─────── Pantalla ───────\n"
                     f"{stdout_exp}\n"
-                    "─────── Ficheros ───────\n"
-                    + "\n".join(f"{k} → {v}" for k, v in files_exp.items())
+                    "─────── Ficheros ───────\n" +
+                    "\n".join(f"{k} → {v}" for k, v in files_exp.items())
                 )
-                errores.append(msg)
-                _mostrar_error_scroll("Resultado de la corrección", errores)
-                return  # detener ejecución de más tests
-            else:
-                aciertos += 1
 
-    if errores:
-        texto = f"✔ Tests superados: {aciertos}/{len(tests)}\n\n" + "\n\n".join(errores)
-        _mostrar_error_scroll("Resultado de la corrección", texto)
-    else:
-        messagebox.showinfo("Correcto", f"🎉 ¡Todos los tests ({aciertos}) superados correctamente!")
+                _mostrar_error_scroll("Resultado de la corrección", msg)
+                return
+
+            aciertos += 1
+
+    messagebox.showinfo("Correcto", f"🎉 ¡Todos los tests ({aciertos}) superados correctamente!")
 
 
 # -------------------------------------------------------------------------
@@ -244,10 +221,8 @@ def _corregir_programa(codigo, ejercicio, tests):
 # -------------------------------------------------------------------------
 
 def _corregir_funcion(codigo, ejercicio, tests):
-    errores = []
     aciertos = 0
 
-    # Crear módulo temporal
     with tempfile.TemporaryDirectory() as tmp:
         ruta = os.path.join(tmp, "alumno.py")
         with open(ruta, "w", encoding="utf-8") as f:
@@ -255,14 +230,9 @@ def _corregir_funcion(codigo, ejercicio, tests):
 
         spec = importlib.util.spec_from_file_location("alumno_mod", ruta)
         mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
 
-        try:
-            spec.loader.exec_module(mod)
-        except Exception as e:
-            messagebox.showerror("Error", f"Error importando módulo del alumno:\n{e}")
-            return
-
-        for idx, test in enumerate(tests, start=1):
+        for idx, test in enumerate(tests, 1):
             func = test["funcName"]
             args = test["args"]
             stdin_val = test["stdin"]
@@ -272,16 +242,16 @@ def _corregir_funcion(codigo, ejercicio, tests):
             filesEnd_exp = test["filesEnd"]
 
             if not hasattr(mod, func):
-                errores.append(f"La función '{func}' no está definida por el alumno.")
-                continue
+                _mostrar_error_scroll("Resultado de la corrección",
+                                      f"La función '{func}' no está definida por el alumno.")
+                return
 
             func_al = getattr(mod, func)
 
             with tempfile.TemporaryDirectory() as work:
-                # Ficheros iniciales
                 for nom, txt in filesIni.items():
-                    with open(os.path.join(work, nom), "w", encoding="utf-8") as f:
-                        f.write(txt)
+                    with open(os.path.join(work, nom), "w", encoding="utf-8") as fw:
+                        fw.write(txt)
 
                 stdin_io = io.StringIO(stdin_val)
                 stdout_io = io.StringIO()
@@ -297,27 +267,21 @@ def _corregir_funcion(codigo, ejercicio, tests):
                         ret_obt = func_al(*args)
                 except Exception as e:
                     os.chdir(cwd_old)
-                    errores.append(f"Test {idx}: Error ejecutando la función:\n{e}")
-                    continue
+                    _mostrar_error_scroll("Resultado de la corrección",
+                                          f"Error ejecutando la función en el test {idx}:\n{e}")
+                    return
                 finally:
                     os.chdir(cwd_old)
 
                 stdout_obt = stdout_io.getvalue()
 
-                filesEnd_obt = {}
+                files_end = {}
                 for nom in os.listdir(work):
-                    with open(os.path.join(work, nom), "r", encoding="utf-8", errors="replace") as f:
-                        filesEnd_obt[nom] = f.read()
+                    with open(os.path.join(work, nom), "r", encoding="utf-8", errors="replace") as fr:
+                        files_end[nom] = fr.read()
 
-            diferencias = []
-            if ret_obt != ret_exp:
-                diferencias.append("- Return incorrecto.")
-            if stdout_obt != stdout_exp:
-                diferencias.append("- La salida por pantalla no coincide.")
-            if filesEnd_obt != filesEnd_exp:
-                diferencias.append("- Los ficheros finales no coinciden.")
+            if ret_obt != ret_exp or stdout_obt != stdout_exp or files_end != filesEnd_exp:
 
-            if diferencias:
                 msg = (
                     f"La función NO supera el test {idx}.\n\n"
                     f"FUNCION: {func}\n"
@@ -325,44 +289,39 @@ def _corregir_funcion(codigo, ejercicio, tests):
                     "▶ CONTEXTO INICIAL\n"
                     "─────── Teclado ───────\n"
                     f"{stdin_val}\n"
-                    "─────── Ficheros ───────\n"
-                    + "\n".join(f"{k} → {v}" for k, v in filesIni.items()) +
+                    "─────── Ficheros ───────\n" +
+                    "\n".join(f"{k} → {v}" for k, v in filesIni.items()) +
                     "\n\n"
                     "▶ RESULTADO OBTENIDO\n"
                     "─────── return ───────\n"
                     f"{ret_obt!r}\n"
                     "─────── Pantalla ───────\n"
                     f"{stdout_obt}\n"
-                    "─────── Ficheros ───────\n"
-                    + "\n".join(f"{k} → {v}" for k, v in filesEnd_obt.items()) +
+                    "─────── Ficheros ───────\n" +
+                    "\n".join(f"{k} → {v}" for k, v in files_end.items()) +
                     "\n\n"
                     "▶ RESULTADO CORRECTO\n"
                     "─────── return ───────\n"
                     f"{ret_exp!r}\n"
                     "─────── Pantalla ───────\n"
                     f"{stdout_exp}\n"
-                    "─────── Ficheros ───────\n"
-                    + "\n".join(f"{k} → {v}" for k, v in filesEnd_exp.items())
+                    "─────── Ficheros ───────\n" +
+                    "\n".join(f"{k} → {v}" for k, v in filesEnd_exp.items())
                 )
-                errores.append(msg)
-                _mostrar_error_scroll("Resultado de la corrección", errores)
-                return  # detener ejecución de más tests
-            else:
-                aciertos += 1
 
-    if errores:
-        texto = f"✔ Tests superados: {aciertos}/{len(tests)}\n\n" + "\n\n".join(errores)
-        _mostrar_error_scroll("Resultado de la corrección", texto)
-    else:
-        messagebox.showinfo("Correcto", f"🎉 ¡Todos los tests ({aciertos}) superados correctamente!")
+                _mostrar_error_scroll("Resultado de la corrección", msg)
+                return
+
+            aciertos += 1
+
+    messagebox.showinfo("Correcto", f"🎉 ¡Todos los tests ({aciertos}) superados correctamente!")
 
 
 # -------------------------------------------------------------------------
-# FUNCIÓN PRINCIPAL USADA POR configuracion.py
+# FUNCIÓN PRINCIPAL
 # -------------------------------------------------------------------------
 
 def main():
-    """Punto de entrada cuando configuracion.py llama al módulo."""
     wb = get_workbench()
     ed = wb.get_editor_notebook().get_current_editor()
 
@@ -373,7 +332,8 @@ def main():
     try:
         codigo = ed.get_text_widget().get("1.0", "end-1c")
     except:
-        codigo = ""   # por seguridad, pero no debería ocurrir
+        codigo = ""
+
     dni, ejercicio = _extraer_ejercicio_y_dni(codigo)
 
     if not ejercicio:
@@ -381,7 +341,7 @@ def main():
         return
 
     tests = _descargar_tests()
-    if ejercicio not in tests:
+    if not tests or ejercicio not in tests:
         messagebox.showerror("Error", f"No existen tests para el ejercicio {ejercicio}.")
         return
 
