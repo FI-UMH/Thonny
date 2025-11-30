@@ -68,47 +68,45 @@ def cargar_o_importar(nombre_modulo):
 
 def _config_cabecera():
     """
-    Restaura la lógica original de insertar automáticamente:
-        # DNI = XXXXX
-        # EJERCICIO =
-    en cada archivo nuevo.
+    Inserta cabecera en archivos NUEVOS.
+    Funciona en todas las versiones de Thonny.
     """
 
     from thonny.editors import Editor
+    wb = get_workbench()
 
-    # Guardamos el __init__ original
-    _old_init = Editor.__init__
+    global ALUMNO_DNI
 
-    def _hook(self, *args, **kwargs):
-        _old_init(self, *args, **kwargs)
+    def insertar_cabecera(editor):
+        """Inserta la cabecera una vez el editor está listo."""
+        cabecera = f"# DNI = {ALUMNO_DNI}\n# EJERCICIO = \n\n"
+        try:
+            w = editor.get_text_widget()
+            w.insert("1.0", cabecera)
+        except:
+            editor.set_text(cabecera)
 
-        if self.get_filename() is None:  # archivo nuevo
-            global ALUMNO_DNI
-            cabecera = f"# DNI = {ALUMNO_DNI}\n# EJERCICIO = \n\n"
-            try:
-                widget = self.get_text_widget()
-                widget.insert("1.0", cabecera)
-            except Exception:
-                self.set_text(cabecera)
+    def hook_init(self, *args, **kwargs):
+        Editor.__old_init__(self, *args, **kwargs)
 
-    Editor.__init__ = _hook
+        # Si el archivo es nuevo
+        if self.get_filename() is None:
+            # Esperamos a que exista el widget gráfico (Thonny tarda en crearlo)
+            wb.after(200, lambda ed=self: insertar_cabecera(ed))
 
-    # Insertar la cabecera en la primera pestaña ya abierta
+    # Reemplazar __init__ de Editor conservando el original
+    if not hasattr(Editor, "__old_init__"):
+        Editor.__old_init__ = Editor.__init__
+        Editor.__init__ = hook_init
+
+    # Primera pestaña ya abierta
     def inicial():
-        wb = get_workbench()
         ed = wb.get_editor_notebook().get_current_editor()
         if ed and ed.get_filename() is None:
-            global ALUMNO_DNI
-            cabecera = f"# DNI = {ALUMNO_DNI}\n# EJERCICIO = \n\n"
-            try:
-                w = ed.get_text_widget()
-                w.delete("1.0", "end")
-                w.insert("1.0", cabecera)
-            except Exception:
-                ed.set_text(cabecera)
+            insertar_cabecera(ed)
 
-    wb = get_workbench()
-    wb.after(500, inicial)
+    wb.after(300, inicial)
+
 
 
 # -------------------------------------------------------------------------
