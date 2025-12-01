@@ -546,7 +546,7 @@ def main():
     except:
         fuente = ""
 
-    dni, ejercicio = _extraer_ejercicio_y_dni(fuente)
+    dni, ejercicio = _extraer_dni_ejercicio(fuente)
 
     if not ejercicio:
         messagebox.showerror("Error", "No se encontró '# EJERCICIO =' en la cabecera.")
