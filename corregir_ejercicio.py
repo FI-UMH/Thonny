@@ -133,7 +133,56 @@ def _preprocesar_codigo(src: str) -> str:
     )
     return cabecera + src_mod
 
-def comparar_resultados_pantalla(pantalla_obtenida: str, pantalla_correcta: str):
+def _ejecutar_programa(codigo_alumno: str, test: dict):
+    """
+    Ejecuta el código del alumno como un programa completo.
+    Devuelve:
+      - salida: {"stdout": "..."}
+      - files_ini_text: dict con los ficheros iniciales
+      - files_end_text: dict con los ficheros finales
+    """
+
+    # STDIN simulado
+    stdin_val = test.get("stdin", "")
+    stdin_backup = sys.stdin
+    sys.stdin = io.StringIO(stdin_val)
+
+    # STDOUT capturado
+    stdout_backup = sys.stdout
+    stdout_captura = io.StringIO()
+    sys.stdout = stdout_captura
+
+    # Ficheros iniciales
+    files_ini = test.get("files", {}).copy()
+    files_end = files_ini.copy()  # Se actualizará si el alumno escribe ficheros
+
+    # ENTORNO SEGURO
+    entorno = {
+        "__name__": "__main__",
+        "__file__": None,
+        "FILES": files_end     # Sistema de ficheros virtual accesible para el alumno
+    }
+
+    try:
+        exec(codigo_alumno, entorno)
+    except Exception as e:
+        # Restaurar I/O
+        sys.stdin = stdin_backup
+        sys.stdout = stdout_backup
+        return {"stdout": f"ERROR: {e}"}, files_ini, files_end
+
+    # Restaurar I/O
+    sys.stdin = stdin_backup
+    sys.stdout = stdout_backup
+
+    salida = {
+        "stdout": stdout_captura.getvalue()
+    }
+
+    return salida, files_ini, files_end
+
+
+def _comparar_resultados_pantalla(pantalla_obtenida: str, pantalla_correcta: str):
     patron = r"\((.*?)\)"
 
     obt_abre = pantalla_obtenida.count("(")
@@ -171,7 +220,7 @@ def comparar_resultados_pantalla(pantalla_obtenida: str, pantalla_correcta: str)
 
     return True, []
 
-def comparar_ficheros(ficheros_obtenidos: dict, ficheros_correctos: dict):
+def _comparar_ficheros(ficheros_obtenidos: dict, ficheros_correctos: dict):
     diferencias = []
 
     # 1. Comparar nombres
@@ -215,13 +264,13 @@ def corregir_ejercicio_programa(codigo, ejercicio, lista_tests):
         pantalla_correcta = test.get("stdout", "")
 
         # Comparación de pantalla
-        ok_pantalla, dif_pantalla = comparar_resultados_pantalla(
+        ok_pantalla, dif_pantalla = _comparar_resultados_pantalla(
             pantalla_obtenida,
             pantalla_correcta
         )
 
         # Comparación de ficheros
-        ok_ficheros, dif_ficheros = comparar_ficheros(
+        ok_ficheros, dif_ficheros = _comparar_ficheros(
             files_fin_text,
             test.get("files", {})
         )
@@ -252,7 +301,7 @@ def corregir_ejercicio_programa(codigo, ejercicio, lista_tests):
             f"{test.get('files_text', '')}\n"
         )
 
-        mostrar_error_scroll("Resultado de la corrección", msg)
+        _mostrar_error_scroll("Resultado de la corrección", msg)
         return  # se detiene en el primer fallo
 
     mostrar_info("Resultado de la corrección", "El ejercicio supera todos los tests.")
