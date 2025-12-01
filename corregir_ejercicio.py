@@ -19,6 +19,9 @@ import io
 from thonny import get_workbench
 from tkinter import messagebox, Toplevel, Text, Scrollbar
 import tkinter.font as tkfont
+import urllib.parse
+import socket
+import uuid
 
 # -------------------------------------------------------------------------
 # CONFIG
@@ -68,6 +71,61 @@ def _mostrar_error_scroll(titulo, mensaje):
 
     txt.config(state="disabled")
 
+# ======================================================================
+#                SUBIR EJERCICIO SIN REQUESTS
+# ======================================================================
+
+def _send_post(url, data):
+    try:
+        encoded = urllib.parse.urlencode(data).encode("utf-8")
+        req = urllib.request.Request(url, data=encoded, method="POST")
+        req.add_header("Content-Type", "application/x-www-form-urlencoded")
+        with urllib.request.urlopen(req, timeout=10) as f:
+            return f.read().decode("utf-8", errors="replace")
+    except Exception:
+        return None
+    
+def _subir_ejercicios(dni, ejercicio, fuente):
+    try:
+        hostname = socket.gethostname()
+
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            ip_local = s.getsockname()[0]
+            s.close()
+        except Exception:
+            ip_local = None
+
+        mac_raw = uuid.getnode()
+        mac = ":".join(f"{(mac_raw >> shift) & 0xff:02x}"
+                       for shift in range(40, -1, -8))
+
+        url_fi = (
+            "https://script.google.com/macros/s/"
+            "AKfycby3wCtvhy2sqLmp9TAl5aEQ4zHTceMAxwA_4M2HCjFJQpvxWmstEoRa5NohH0Re2eQa/exec"
+        )
+        url_pomares = (
+            "https://script.google.com/macros/s/"
+            "AKfycbw1CMfaQcJuP1cLBmt5eHryrmb83Tb0oIrWu_XHfRQpYt8kWY_g6TpsQx92QwhB_SjyYg/exec"
+        )
+
+        data = {
+            "key": "Thonny#fi",
+            "ordenador": hostname,
+            "ip": ip_local,
+            "mac": mac,
+            "dni": dni,
+            "ejercicio": ejercicio,
+            "fuente": fuente,
+        }
+
+        _send_post(url_fi, data)
+        _send_post(url_pomares, data)
+
+    except Exception:
+        pass
+
 
 # -------------------------------------------------------------------------
 # TESTS
@@ -108,12 +166,12 @@ def _paren_counter(s: str):
     return Counter(norm)
 
 
-def _extraer_ejercicio_y_dni(codigo):
-    dni_m = re.search(r"^\s*#\s*DNI\s*=\s*(.+)$", codigo, re.MULTILINE)
-    ej_m  = re.search(r"^\s*#\s*EJERCICIO\s*=\s*(.+)$", codigo, re.MULTILINE)
+def _extraer_dni_ejercicio(fuente):
+    dni_m = re.search(r"^\s*#\s*DNI\s*=\s*(.+)$", fuente, re.MULTILINE)
+    ejercicio_m  = re.search(r"^\s*#\s*EJERCICIO\s*=\s*(.+)$", fuente, re.MULTILINE)
     dni = dni_m.group(1).strip() if dni_m else None
-    ej  = ej_m.group(1).strip() if ej_m else None
-    return dni, ej
+    ejercicio  = ejercicio_m.group(1).strip() if ejercicio_m else None
+    return dni, ejercicio
 
 
 def _preprocesar_codigo(src: str) -> str:
@@ -271,14 +329,14 @@ def _comparar_ficheros(ficheros_obt: dict, ficheros_exp: dict):
 # CORRECCIÓN DE PROGRAMAS pXXX
 # -------------------------------------------------------------------------
 
-def _corregir_ejercicio_programa(codigo, ejercicio, lista_tests):
+def _corregir_ejercicio_programa(dni, ejercicio, fuente, lista_tests):
 
     for idx, test in enumerate(lista_tests, start=1):
 
         # ---------------------------------------------------------
         # 1. Ejecutar programa
         # ---------------------------------------------------------
-        salida, files_ini, files_end = _ejecutar_programa(codigo, test)
+        salida, files_ini, files_end = _ejecutar_programa(fuente, test)
 
         stdout_obt = salida.get("stdout", "")
         stdout_exp = test.get("stdout", "")
@@ -338,15 +396,23 @@ def _corregir_ejercicio_programa(codigo, ejercicio, lista_tests):
 
         _mostrar_error_scroll("Resultado de la corrección", msg)
         return
-
+    
+    # ---------------------------------------------------------
+    # CORRECTO - ENVIO EJERCICIO A SERVIDORES 
+    # ---------------------------------------------------------
+    threading.Thread(
+        target=_subir_ejercicios,
+        args=(dni, ejercicio, fuente),
+        daemon=True
+    ).start()
     messagebox.showinfo("Resultado de la corrección", "El ejercicio supera todos los tests.")
-
+    return
 
 # -------------------------------------------------------------------------
 # CORRECCIÓN DE FUNCIONES fXXX
 # -------------------------------------------------------------------------
 
-def _corregir_ejercicio_funcion(codigo, ejercicio, lista_tests):
+def _corregir_ejercicio_funcion(dni, ejercicio, fuente, lista_tests):
 
     for idx, test in enumerate(lista_tests, start=1):
 
@@ -452,8 +518,16 @@ def _corregir_ejercicio_funcion(codigo, ejercicio, lista_tests):
         _mostrar_error_scroll("Resultado de la corrección", msg)
         return
 
+    # ---------------------------------------------------------
+    # CORRECTO - ENVIO EJERCICIO A SERVIDORES 
+    # ---------------------------------------------------------
+    threading.Thread(
+        target=_subir_ejercicios,
+        args=(dni, ejercicio, fuente),
+        daemon=True
+    ).start()
     messagebox.showinfo("Resultado de la corrección", "El ejercicio supera todos los tests.")
-
+    return
 
 # -------------------------------------------------------------------------
 # FUNCIÓN PRINCIPAL
@@ -468,11 +542,11 @@ def main():
         return
 
     try:
-        codigo = ed.get_text_widget().get("1.0", "end-1c")
+        fuente = ed.get_text_widget().get("1.0", "end-1c")
     except:
-        codigo = ""
+        fuente = ""
 
-    dni, ejercicio = _extraer_ejercicio_y_dni(codigo)
+    dni, ejercicio = _extraer_ejercicio_y_dni(fuente)
 
     if not ejercicio:
         messagebox.showerror("Error", "No se encontró '# EJERCICIO =' en la cabecera.")
@@ -486,8 +560,8 @@ def main():
     lista = tests[ejercicio]
 
     if ejercicio.startswith("p"):
-        _corregir_ejercicio_programa(codigo, ejercicio, lista)
+        _corregir_ejercicio_programa(dni, ejercicio, fuente, lista)
     elif ejercicio.startswith("f"):
-        _corregir_ejercicio_funcion(codigo, ejercicio, lista)
+        _corregir_ejercicio_funcion(dni, ejercicio, fuente, lista)
     else:
-        messagebox.showerror("Error", "El ejercicio debe empezar por 'p' o 'f'.")
+        messagebox.showerror("Error", "El identificativo de ejercicio debe empezar por 'p' o 'f'.")
