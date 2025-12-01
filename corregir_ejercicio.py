@@ -424,19 +424,10 @@ def _corregir_ejercicio_funcion(dni, ejercicio, fuente, lista_tests):
         # 1. Ejecutar función del alumno
         # ---------------------------------------------------------
         try:
-            salida = _ejecutar_funcion(
-                codigo,
-                nombre_funcion,
-                args
-            )
+            salida = _ejecutar_funcion(fuente, nombre_funcion, args)
         except Exception as e:
-            msg = (
-                "La función NO supera el test.\n\n"
-                f"Error al ejecutar la función: {e}\n\n"
-                f"FUNCION: {nombre_funcion}\n"
-                f"ARGUMENTOS: {args}\n"
-            )
-            _mostrar_error_scroll("Resultado de la corrección", msg)
+            msg = f"Error al ejecutar la función: {nombre_funcion}({','.join(args)})\n{e}"
+            messagebox.showerror("Error", msg)
             return
 
         stdout_obt = salida.get("stdout", "")
