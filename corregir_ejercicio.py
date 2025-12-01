@@ -22,6 +22,7 @@ import tkinter.font as tkfont
 import urllib.parse
 import socket
 import uuid
+import threading
 
 # -------------------------------------------------------------------------
 # CONFIG
@@ -150,22 +151,6 @@ def _descargar_tests():
 # UTILIDADES DE EJECUCIÓN
 # -------------------------------------------------------------------------
 
-def _decode_bytes(b: bytes) -> str:
-    for enc in ("utf-8", "utf-8-sig", "latin-1"):
-        try:
-            return b.decode(enc)
-        except:
-            pass
-    return b.decode("utf-8", errors="replace")
-
-
-def _paren_counter(s: str):
-    raw = _PAREN_RE.findall(s or "")
-    norm = [ "(" + re.sub(r"\s+", "", tok[1:-1]) + ")" for tok in raw ]
-    from collections import Counter
-    return Counter(norm)
-
-
 def _extraer_dni_ejercicio(fuente):
     dni_m = re.search(r"^\s*#\s*DNI\s*=\s*(.+)$", fuente, re.MULTILINE)
     ejercicio_m  = re.search(r"^\s*#\s*EJERCICIO\s*=\s*(.+)$", fuente, re.MULTILINE)
@@ -195,47 +180,61 @@ def _ejecutar_programa(fuente: str, test: dict):
     stdout_cap = io.StringIO()
     sys.stdout = stdout_cap
 
-    # Sistema de ficheros inicial
-    files_ini = test.get("files", {}).copy()
-    files_end = files_ini.copy()
+    # Sistema de ficheros inicial (simétrico con funciones)
+    # OJO: usamos copia para no modificar el diccionario original del test
+    files_ini = test.get("filesIni", {})
+    files_runtime = files_ini.copy()
 
     # Entorno aislado
     entorno = {
         "__name__": "__main__",
-        "FILES": files_end
+        "FILES": files_runtime,
     }
 
     try:
         exec(_preprocesar_fuente(fuente), entorno)
     except Exception as e:
+        # Restaurar I/O
         sys.stdin = stdin_backup
         sys.stdout = stdout_backup
-        return {"stdout": f"ERROR: {e}"}, files_ini, files_end
+        return {"stdout": f"ERROR: {e}"}, files_ini, files_runtime
 
     # Restaurar I/O
     sys.stdin = stdin_backup
     sys.stdout = stdout_backup
 
     salida = {"stdout": stdout_cap.getvalue()}
-    return salida, files_ini, files_end
+    return salida, files_ini, files_runtime
 
 
-def _ejecutar_funcion(fuente: str, nombre_funcion: str, args: list):
-    entorno = {"__name__": "__main__", "FILES": {}}
+def _ejecutar_funcion(fuente: str, nombre_funcion: str, args: list, files_ini: dict | None = None):
+    # Sistema de ficheros inicial para la función
+    if files_ini is None:
+        files_ini = {}
+    files_runtime = files_ini.copy()
 
-    # Ejecutar código del alumno
+    entorno = {
+        "__name__": "__main__",
+        "FILES": files_runtime,
+    }
+
+    # Ejecutar código del alumno (definiciones de funciones, etc.)
     try:
         exec(_preprocesar_fuente(fuente), entorno)
     except Exception as e:
-        return {"stdout": "", "return": f"ERROR: {e}", "files": {}}
+        return {"stdout": "", "return": f"ERROR: {e}", "files": files_runtime}
 
-    # Verificar función
+    # Verificar que la función existe
     if nombre_funcion not in entorno or not callable(entorno[nombre_funcion]):
-        return {"stdout": "", "return": f"ERROR: función '{nombre_funcion}' no definida", "files": {}}
+        return {
+            "stdout": "",
+            "return": f"ERROR: función '{nombre_funcion}' no definida",
+            "files": files_runtime,
+        }
 
     funcion = entorno[nombre_funcion]
 
-    # Capturar stdout
+    # Capturar stdout mientras se ejecuta la función
     stdout_backup = sys.stdout
     stdout_cap = io.StringIO()
     sys.stdout = stdout_cap
@@ -244,7 +243,11 @@ def _ejecutar_funcion(fuente: str, nombre_funcion: str, args: list):
         ret = funcion(*args)
     except Exception as e:
         sys.stdout = stdout_backup
-        return {"stdout": "", "return": f"ERROR: {e}", "files": entorno.get("FILES", {})}
+        return {
+            "stdout": "",
+            "return": f"ERROR: {e}",
+            "files": files_runtime,
+        }
 
     # Restaurar stdout
     sys.stdout = stdout_backup
@@ -252,9 +255,8 @@ def _ejecutar_funcion(fuente: str, nombre_funcion: str, args: list):
     return {
         "stdout": stdout_cap.getvalue(),
         "return": ret,
-        "files": entorno.get("FILES", {})
+        "files": files_runtime,
     }
-
 
 
 def _comparar_resultados_pantalla(pantalla_obt: str, pantalla_exp: str):
@@ -341,10 +343,13 @@ def _corregir_ejercicio_programa(dni, ejercicio, fuente, lista_tests):
         stdout_obt = salida.get("stdout", "")
         stdout_exp = test.get("stdout", "")
 
+        # Estado final esperado de los ficheros (simétrico con funciones)
+        files_end_exp = test.get("filesEnd", {})
+
         # Textos ficheros
         filesIni_text = "\n".join(f"{k} → {v}" for k, v in files_ini.items()) or "(sin ficheros)"
         files_end_text = "\n".join(f"{k} → {v}" for k, v in files_end.items()) or "(sin ficheros)"
-        filesEnd_exp_text = "\n".join(f"{k} → {v}" for k, v in test.get("files", {}).items()) or "(sin ficheros)"
+        filesEnd_exp_text = "\n".join(f"{k} → {v}" for k, v in files_end_exp.items()) or "(sin ficheros)"
 
         # ---------------------------------------------------------
         # 2. Comparación pantalla
@@ -354,7 +359,7 @@ def _corregir_ejercicio_programa(dni, ejercicio, fuente, lista_tests):
         # ---------------------------------------------------------
         # 3. Comparación ficheros
         # ---------------------------------------------------------
-        ok_files, dif_files = _comparar_ficheros(files_end, test.get("files", {}))
+        ok_files, dif_files = _comparar_ficheros(files_end, files_end_exp)
 
         # ---------------------------------------------------------
         # 4. Si todo bien -> siguiente test
@@ -398,7 +403,7 @@ def _corregir_ejercicio_programa(dni, ejercicio, fuente, lista_tests):
         return
     
     # ---------------------------------------------------------
-    # CORRECTO - ENVIO EJERCICIO A SERVIDORES 
+    # CORRECTO - ENVÍO EJERCICIO A SERVIDORES 
     # ---------------------------------------------------------
     threading.Thread(
         target=_subir_ejercicios,
@@ -407,6 +412,7 @@ def _corregir_ejercicio_programa(dni, ejercicio, fuente, lista_tests):
     ).start()
     messagebox.showinfo("Resultado de la corrección", "El ejercicio supera todos los tests.")
     return
+
 
 # -------------------------------------------------------------------------
 # CORRECCIÓN DE FUNCIONES fXXX
@@ -420,13 +426,20 @@ def _corregir_ejercicio_funcion(dni, ejercicio, fuente, lista_tests):
         args = test.get("args", [])
         stdin_val = test.get("stdin", "")
 
+        # Ficheros iniciales y finales ESPERADOS (según tests.json)
+        files_ini = test.get("filesIni", {})
+        files_end_exp = test.get("filesEnd", {})
+
         # ---------------------------------------------------------
         # 1. Ejecutar función del alumno
         # ---------------------------------------------------------
         try:
-            salida = _ejecutar_funcion(fuente, nombre_funcion, args)
+            salida = _ejecutar_funcion(fuente, nombre_funcion, args, files_ini)
         except Exception as e:
-            msg = f"Error al ejecutar la función: {nombre_funcion}({','.join(args)})\n{e}"
+            msg = (
+                f"Error al ejecutar la función: {nombre_funcion}"
+                f"({', '.join(map(str, args))})\n{e}"
+            )
             messagebox.showerror("Error", msg)
             return
 
@@ -436,10 +449,9 @@ def _corregir_ejercicio_funcion(dni, ejercicio, fuente, lista_tests):
 
         stdout_exp = test.get("stdout", "")
         ret_exp = test.get("return", None)
-        files_end_exp = test.get("files", {})
 
-        # Textos de ficheros (aunque casi nunca se usan en funciones)
-        filesIni_text = "(sin ficheros)"
+        # Textos de ficheros (inicial, obtenido, correcto)
+        filesIni_text = "\n".join(f"{k} → {v}" for k, v in files_ini.items()) or "(sin ficheros)"
         files_end_text = "\n".join(f"{k} → {v}" for k, v in files_end.items()) or "(sin ficheros)"
         filesEnd_exp_text = "\n".join(f"{k} → {v}" for k, v in files_end_exp.items()) or "(sin ficheros)"
 
@@ -453,7 +465,6 @@ def _corregir_ejercicio_funcion(dni, ejercicio, fuente, lista_tests):
         # ---------------------------------------------------------
         ok_return = (ret_obt == ret_exp)
         dif_return = []
-
         if not ok_return:
             dif_return.append(f"Valor retornado incorrecto. Obtenido: {ret_obt}, Correcto: {ret_exp}")
 
@@ -519,6 +530,7 @@ def _corregir_ejercicio_funcion(dni, ejercicio, fuente, lista_tests):
     ).start()
     messagebox.showinfo("Resultado de la corrección", "El ejercicio supera todos los tests.")
     return
+
 
 # -------------------------------------------------------------------------
 # FUNCIÓN PRINCIPAL
