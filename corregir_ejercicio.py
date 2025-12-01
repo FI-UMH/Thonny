@@ -94,15 +94,15 @@ def _mostrar_error_scroll(titulo, mensaje):
             txt.tag_add("titulo", pos, end)
             start = end
             
-    for palabra in ("Argumentos", "Retorno función",
-                    "Teclado", "Pantalla", "Ficheros"):
+    for palabra in ("─────Argumentos─────", "─────Retorno función─────",
+                    "─────Teclado─────", "─────Pantalla─────", "─────Ficheros─────"):
         start = "1.0"
         while True:
             pos = txt.search(palabra, start, stopindex="end")
             if not pos:
                 break
             end = f"{pos}+{len(palabra)}c"
-            txt.tag_add("titulo", pos, end)
+            txt.tag_add("subtitulo", pos, end)
             start = end
 
     # Habilitar scroll con la rueda del ratón
@@ -585,29 +585,29 @@ def _mensaje_error_programa(errores, test, stdout_obt, files_end_text):
     partes.append("")
 
     if errores:
-        partes.append("▶ ERRORES DETECTADOS:")
+        partes.append("   ERRORES DETECTADOS:")
         for err in errores:
             partes.append(f"- {err}")
         partes.append("")
 
-    partes.append("▶ CONTEXTO INICIAL")
-    partes.append("Teclado")
+    partes.append("    CONTEXTO INICIAL")
+    partes.append("────────Teclado──────────")
     partes.append(test.get("stdin", ""))
-    partes.append("Ficheros")
+    partes.append("────────Ficheros─────────")
     partes.append(_formatear_dict_ficheros(files_ini))
     partes.append("")
 
-    partes.append("▶ RESULTADO OBTENIDO")
-    partes.append("Pantalla")
+    partes.append("   RESULTADO OBTENIDO")
+    partes.append("────────Pantalla─────────")
     partes.append(stdout_obt)
-    partes.append("Ficheros")
+    partes.append("────────Ficheros─────────")
     partes.append(files_end_text)
     partes.append("")
 
-    partes.append("▶ RESULTADO CORRECTO")
-    partes.append("Pantalla")
+    partes.append("   RESULTADO CORRECTO")
+    partes.append("────────Pantalla─────────")
     partes.append(stdout_ok)
-    partes.append("Ficheros")
+    partes.append("────────Ficheros─────────")
     partes.append(_formatear_dict_ficheros(files_end_ok))
 
     return "\n".join(partes)
@@ -624,35 +624,35 @@ def _mensaje_error_funcion(errores, test, stdout_obt, files_end_text, ret_obt):
     partes.append("")
 
     if errores:
-        partes.append("▶ ERRORES DETECTADOS:")
+        partes.append("   ERRORES DETECTADOS:")
         for err in errores:
             partes.append(f"- {err}")
         partes.append("")
 
-    partes.append("▶ CONTEXTO INICIAL")
-    partes.append("Argumentos")
+    partes.append("    CONTEXTO INICIAL")
+    partes.append("───────Argumentos────────")
     partes.append(repr(test.get("args", [])))
-    partes.append("Teclado")
+    partes.append("────────Teclado──────────")
     partes.append(test.get("stdin", ""))
-    partes.append("Ficheros")
+    partes.append("────────Ficheros─────────")
     partes.append(_formatear_dict_ficheros(files_ini))
     partes.append("")
 
-    partes.append("▶ RESULTADO OBTENIDO")
-    partes.append("Retorno función")
+    partes.append("   RESULTADO OBTENIDO")
+    partes.append("─────Retorno función─────")
     partes.append(repr(ret_obt))
-    partes.append("Pantalla")
+    partes.append("────────Pantalla─────────")
     partes.append(stdout_obt)
-    partes.append("Ficheros")
+    partes.append("────────Ficheros─────────")
     partes.append(files_end_text)
     partes.append("")
 
-    partes.append("▶ RESULTADO CORRECTO")
-    partes.append("Retorno función")
+    partes.append("   RESULTADO CORRECTO")
+    partes.append("─────Retorno función─────")
     partes.append(repr(ret_ok))
-    partes.append("Pantalla")
+    partes.append("────────Pantalla─────────")
     partes.append(stdout_ok)
-    partes.append("Ficheros")
+    partes.append("────────Ficheros─────────")
     partes.append(_formatear_dict_ficheros(files_end_ok))
 
     return "\n".join(partes)
