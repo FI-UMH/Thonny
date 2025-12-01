@@ -174,7 +174,7 @@ def _extraer_dni_ejercicio(fuente):
     return dni, ejercicio
 
 
-def _preprocesar_codigo(src: str) -> str:
+def _preprocesar_fuente(src: str) -> str:
     src_mod = re.sub(r"input\s*\(", "inputt(", src)
     cabecera = (
         "def inputt(msg=''):\n"
@@ -184,7 +184,7 @@ def _preprocesar_codigo(src: str) -> str:
     )
     return cabecera + src_mod
 
-def _ejecutar_programa(codigo_alumno: str, test: dict):
+def _ejecutar_programa(fuente: str, test: dict):
     # Capturar stdin
     stdin_val = test.get("stdin", "")
     stdin_backup = sys.stdin
@@ -206,7 +206,7 @@ def _ejecutar_programa(codigo_alumno: str, test: dict):
     }
 
     try:
-        exec(codigo_alumno, entorno)
+        exec(_preprocesar_fuente(fuente), entorno)
     except Exception as e:
         sys.stdin = stdin_backup
         sys.stdout = stdout_backup
@@ -220,12 +220,12 @@ def _ejecutar_programa(codigo_alumno: str, test: dict):
     return salida, files_ini, files_end
 
 
-def _ejecutar_funcion(codigo_alumno: str, nombre_funcion: str, args: list):
+def _ejecutar_funcion(fuente: str, nombre_funcion: str, args: list):
     entorno = {"__name__": "__main__", "FILES": {}}
 
     # Ejecutar código del alumno
     try:
-        exec(codigo_alumno, entorno)
+        exec(_preprocesar_fuente(fuente), entorno)
     except Exception as e:
         return {"stdout": "", "return": f"ERROR: {e}", "files": {}}
 
