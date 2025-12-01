@@ -390,7 +390,7 @@ def _corregir_ejercicio_funcion(codigo, ejercicio, lista_tests):
         try:
             salida = _ejecutar_funcion(
                 codigo,
-                test["function"],
+                test["funcName"],
                 test.get("args", []),
                 test.get("kwargs", {})
             )
@@ -398,7 +398,7 @@ def _corregir_ejercicio_funcion(codigo, ejercicio, lista_tests):
             msg = (
                 "La función NO supera el test.\n\n"
                 f"Error al ejecutar la función: {e}\n\n"
-                f"FUNCION: {test['function']}\n"
+                f"FUNCION: {test['funcName']}\n"
                 f"ARGUMENTOS: {test.get('args', [])}\n"
             )
             _mostrar_error_scroll("Resultado de la corrección", msg)
