@@ -82,7 +82,8 @@ def _mostrar_error_scroll(titulo, mensaje):
     bold.configure(weight="bold")
     txt.tag_configure("titulo", font=bold)
 
-    for palabra in ("CONTEXTO INICIAL", "RESULTADO OBTENIDO", "RESULTADO CORRECTO"):
+    for palabra in ("CONTEXTO INICIAL", "RESULTADO OBTENIDO", "RESULTADO CORRECTO", 
+                    "ERRORES DETECTADOS", "Argumentos", "Teclado", "Pantalla, "Ficheros""):
         start = "1.0"
         while True:
             pos = txt.search(palabra, start, stopindex="end")
