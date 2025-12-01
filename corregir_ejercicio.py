@@ -80,7 +80,7 @@ def _mostrar_error_scroll(titulo, mensaje):
     base = tkfont.Font(font=txt["font"])
     bold = base.copy()
     bold.configure(weight="bold")
-    txt.tag_configure("titulo", font=bold)
+    txt.tag_configure("titulo", font=bold, foreground="red")
 
     for palabra in ("CONTEXTO INICIAL", "RESULTADO OBTENIDO", "RESULTADO CORRECTO", 
                     "ERRORES DETECTADOS", "Argumentos", "Teclado", "Pantalla", "Ficheros"):
