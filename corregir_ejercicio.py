@@ -380,8 +380,8 @@ def main():
     lista = tests[ejercicio]
 
     if ejercicio.startswith("p"):
-        _corregir_programa(codigo, ejercicio, lista)
+        _corregir_ejercicio_programa(codigo, ejercicio, lista)
     elif ejercicio.startswith("f"):
-        _corregir_funcion(codigo, ejercicio, lista)
+        _corregir_ejercicio_funcion(codigo, ejercicio, lista)
     else:
         messagebox.showerror("Error", "El ejercicio debe empezar por 'p' o 'f'.")
