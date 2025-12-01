@@ -12,20 +12,13 @@ Este módulo:
 """
 
 import sys
-import os
 import re
 import json
 import urllib.request
-import tempfile
-import subprocess
-import importlib.util
 import io
-from contextlib import redirect_stdout
-from unittest.mock import patch
 from thonny import get_workbench
 from tkinter import messagebox, Toplevel, Text, Scrollbar
 import tkinter.font as tkfont
-import re
 
 # -------------------------------------------------------------------------
 # CONFIG
@@ -134,39 +127,29 @@ def _preprocesar_codigo(src: str) -> str:
     return cabecera + src_mod
 
 def _ejecutar_programa(codigo_alumno: str, test: dict):
-    """
-    Ejecuta el código del alumno como un programa completo.
-    Devuelve:
-      - salida: {"stdout": "..."}
-      - files_ini_text: dict con los ficheros iniciales
-      - files_end_text: dict con los ficheros finales
-    """
-
-    # STDIN simulado
+    # Capturar stdin
     stdin_val = test.get("stdin", "")
     stdin_backup = sys.stdin
     sys.stdin = io.StringIO(stdin_val)
 
-    # STDOUT capturado
+    # Capturar stdout
     stdout_backup = sys.stdout
-    stdout_captura = io.StringIO()
-    sys.stdout = stdout_captura
+    stdout_cap = io.StringIO()
+    sys.stdout = stdout_cap
 
-    # Ficheros iniciales
+    # Sistema de ficheros inicial
     files_ini = test.get("files", {}).copy()
-    files_end = files_ini.copy()  # Se actualizará si el alumno escribe ficheros
+    files_end = files_ini.copy()
 
-    # ENTORNO SEGURO
+    # Entorno aislado
     entorno = {
         "__name__": "__main__",
-        "__file__": None,
-        "FILES": files_end     # Sistema de ficheros virtual accesible para el alumno
+        "FILES": files_end
     }
 
     try:
         exec(codigo_alumno, entorno)
     except Exception as e:
-        # Restaurar I/O
         sys.stdin = stdin_backup
         sys.stdout = stdout_backup
         return {"stdout": f"ERROR: {e}"}, files_ini, files_end
@@ -175,122 +158,114 @@ def _ejecutar_programa(codigo_alumno: str, test: dict):
     sys.stdin = stdin_backup
     sys.stdout = stdout_backup
 
-    salida = {
-        "stdout": stdout_captura.getvalue()
-    }
-
+    salida = {"stdout": stdout_cap.getvalue()}
     return salida, files_ini, files_end
 
-def _ejecutar_funcion(codigo_alumno: str, nombre_funcion: str, args: list, kwargs: dict):
-    """
-    Ejecuta una función del código del alumno.
-    Captura stdout y valor de retorno.
-    """
 
-    # Preparar entorno seguro
-    entorno = {
-        "__name__": "__main__",
-        "FILES": {}
-    }
+def _ejecutar_funcion(codigo_alumno: str, nombre_funcion: str, args: list):
+    entorno = {"__name__": "__main__", "FILES": {}}
 
-    # Compilar y ejecutar el código del alumno
+    # Ejecutar código del alumno
     try:
         exec(codigo_alumno, entorno)
     except Exception as e:
-        return {"stdout": "", "return": f"ERROR: {e}"}
+        return {"stdout": "", "return": f"ERROR: {e}", "files": {}}
 
-    # Verificar que la función existe
+    # Verificar función
     if nombre_funcion not in entorno or not callable(entorno[nombre_funcion]):
-        return {"stdout": "", "return": f"ERROR: función '{nombre_funcion}' no definida"}
+        return {"stdout": "", "return": f"ERROR: función '{nombre_funcion}' no definida", "files": {}}
 
     funcion = entorno[nombre_funcion]
 
     # Capturar stdout
     stdout_backup = sys.stdout
-    stdout_captura = io.StringIO()
-    sys.stdout = stdout_captura
+    stdout_cap = io.StringIO()
+    sys.stdout = stdout_cap
 
     try:
-        ret = funcion(*args, **kwargs)
+        ret = funcion(*args)
     except Exception as e:
         sys.stdout = stdout_backup
-        return {"stdout": "", "return": f"ERROR: {e}"}
+        return {"stdout": "", "return": f"ERROR: {e}", "files": entorno.get("FILES", {})}
 
     # Restaurar stdout
     sys.stdout = stdout_backup
 
     return {
-        "stdout": stdout_captura.getvalue(),
-        "return": ret
+        "stdout": stdout_cap.getvalue(),
+        "return": ret,
+        "files": entorno.get("FILES", {})
     }
 
 
-def _comparar_resultados_pantalla(pantalla_obtenida: str, pantalla_correcta: str):
+
+def _comparar_resultados_pantalla(pantalla_obt: str, pantalla_exp: str):
     patron = r"\((.*?)\)"
 
-    obt_abre = pantalla_obtenida.count("(")
-    obt_cierra = pantalla_obtenida.count(")")
-    cor_abre = pantalla_correcta.count("(")
-    cor_cierra = pantalla_correcta.count(")")
-
     diferencias = []
+
+    obt_abre = pantalla_obt.count("(")
+    obt_cierra = pantalla_obt.count(")")
+    exp_abre = pantalla_exp.count("(")
+    exp_cierra = pantalla_exp.count(")")
 
     # Paréntesis desbalanceados
     if obt_abre != obt_cierra:
         diferencias.append(f"Paréntesis desbalanceados en la salida obtenida: {obt_abre} '(' vs {obt_cierra} ')'.")
         return False, diferencias
 
-    if cor_abre != cor_cierra:
-        diferencias.append(f"Paréntesis desbalanceados en la salida correcta: {cor_abre} '(' vs {cor_cierra} ')'.")
+    if exp_abre != exp_cierra:
+        diferencias.append(f"Paréntesis desbalanceados en la salida correcta: {exp_abre} '(' vs {exp_cierra} ')'.")
         return False, diferencias
 
-    # Conteo distinto
-    if obt_abre != cor_abre:
-        diferencias.append(f"Número de resultados distinto. Obtenida: {obt_abre}, Correcta: {cor_abre}.")
+    # Conteo de resultados
+    if obt_abre != exp_abre:
+        diferencias.append(f"Número de resultados distinto. Obtenida: {obt_abre}, Correcta: {exp_abre}.")
 
     # Extraer resultados
-    res_obtenidos = [r.replace(" ", "") for r in re.findall(patron, pantalla_obtenida)]
-    res_correctos = [r.replace(" ", "") for r in re.findall(patron, pantalla_correcta)]
+    res_obt = [r.replace(" ", "") for r in re.findall(patron, pantalla_obt)]
+    res_exp = [r.replace(" ", "") for r in re.findall(patron, pantalla_exp)]
 
-    # Comparación sin orden
-    faltan = [rc for rc in res_correctos if rc not in res_obtenidos]
+    # Comparar sin orden
+    faltan = [r for r in res_exp if r not in res_obt]
 
     if faltan:
         diferencias.append(f"Faltan resultados: {faltan}")
-        diferencias.append(f"Obtenidos: {res_obtenidos}")
-        diferencias.append(f"Correctos: {res_correctos}")
+        diferencias.append(f"Obtenidos: {res_obt}")
+        diferencias.append(f"Correctos: {res_exp}")
         return False, diferencias
 
     return True, []
 
-def _comparar_ficheros(ficheros_obtenidos: dict, ficheros_correctos: dict):
+
+def _comparar_ficheros(ficheros_obt: dict, ficheros_exp: dict):
     diferencias = []
 
-    # 1. Comparar nombres
-    nombres_obtenidos = set(ficheros_obtenidos.keys())
-    nombres_correctos = set(ficheros_correctos.keys())
+    # Nombres
+    nombres_obt = set(ficheros_obt.keys())
+    nombres_exp = set(ficheros_exp.keys())
 
-    faltan = nombres_correctos - nombres_obtenidos
-    sobran = nombres_obtenidos - nombres_correctos
+    faltan = nombres_exp - nombres_obt
+    sobran = nombres_obt - nombres_exp
 
     if faltan:
         diferencias.append(f"Faltan ficheros: {sorted(list(faltan))}")
     if sobran:
         diferencias.append(f"Ficheros inesperados: {sorted(list(sobran))}")
 
-    # Si ya fallan los nombres no hace falta seguir
     if diferencias:
         return False, diferencias
 
-    # 2. Comparar contenido
-    for nombre in nombres_correctos:
-        if ficheros_obtenidos[nombre] != ficheros_correctos[nombre]:
+    # Contenido
+    for nombre in nombres_exp:
+        if ficheros_obt[nombre] != ficheros_exp[nombre]:
             diferencias.append(f"El contenido del fichero '{nombre}' es diferente.")
 
     if diferencias:
         return False, diferencias
 
     return True, []
+
 
 # -------------------------------------------------------------------------
 # CORRECCIÓN DE PROGRAMAS pXXX
@@ -301,47 +276,41 @@ def _corregir_ejercicio_programa(codigo, ejercicio, lista_tests):
     for idx, test in enumerate(lista_tests, start=1):
 
         # ---------------------------------------------------------
-        # 1. Ejecutar el programa del alumno
+        # 1. Ejecutar programa
         # ---------------------------------------------------------
         salida, files_ini, files_end = _ejecutar_programa(codigo, test)
 
-        pantalla_obtenida = salida.get("stdout", "")
-        pantalla_correcta = test.get("stdout", "")
+        stdout_obt = salida.get("stdout", "")
+        stdout_exp = test.get("stdout", "")
 
-        # Construir textos de ficheros
+        # Textos ficheros
         filesIni_text = "\n".join(f"{k} → {v}" for k, v in files_ini.items()) or "(sin ficheros)"
         files_end_text = "\n".join(f"{k} → {v}" for k, v in files_end.items()) or "(sin ficheros)"
         filesEnd_exp_text = "\n".join(f"{k} → {v}" for k, v in test.get("files", {}).items()) or "(sin ficheros)"
 
         # ---------------------------------------------------------
-        # 2. Comparación de pantalla
+        # 2. Comparación pantalla
         # ---------------------------------------------------------
-        ok_pantalla, dif_pantalla = _comparar_resultados_pantalla(
-            pantalla_obtenida,
-            pantalla_correcta
-        )
+        ok_pantalla, dif_pantalla = _comparar_resultados_pantalla(stdout_obt, stdout_exp)
 
         # ---------------------------------------------------------
-        # 3. Comparación de ficheros
+        # 3. Comparación ficheros
         # ---------------------------------------------------------
-        ok_ficheros, dif_ficheros = _comparar_ficheros(
-            files_end,
-            test.get("files", {})
-        )
+        ok_files, dif_files = _comparar_ficheros(files_end, test.get("files", {}))
 
         # ---------------------------------------------------------
-        # 4. Si todo está bien → siguiente test
+        # 4. Si todo bien -> siguiente test
         # ---------------------------------------------------------
-        if ok_pantalla and ok_ficheros:
+        if ok_pantalla and ok_files:
             continue
 
         # ---------------------------------------------------------
         # 5. DIFERENCIAS DETECTADAS
         # ---------------------------------------------------------
-        diferencias_detectadas = "\n".join(dif_pantalla + dif_ficheros)
+        diferencias_detectadas = "\n".join(dif_pantalla + dif_files)
 
         # ---------------------------------------------------------
-        # 6. MENSAJE FINAL UNIFICADO (programas)
+        # 6. MENSAJE FINAL UNIFICADO
         # ---------------------------------------------------------
         msg = (
             "El ejercicio no supera el test.\n\n"
@@ -356,13 +325,13 @@ def _corregir_ejercicio_programa(codigo, ejercicio, lista_tests):
             + "\n\n"
             "▶ RESULTADO OBTENIDO\n"
             "─────── Pantalla ───────\n"
-            f"{pantalla_obtenida}\n"
+            f"{stdout_obt}\n"
             "─────── Ficheros ───────\n"
             + files_end_text
             + "\n\n"
             "▶ RESULTADO CORRECTO\n"
             "─────── Pantalla ───────\n"
-            f"{pantalla_correcta}\n"
+            f"{stdout_exp}\n"
             "─────── Ficheros ───────\n"
             + filesEnd_exp_text
         )
@@ -370,9 +339,6 @@ def _corregir_ejercicio_programa(codigo, ejercicio, lista_tests):
         _mostrar_error_scroll("Resultado de la corrección", msg)
         return
 
-    # ---------------------------------------------------------
-    # 7. Éxito total
-    # ---------------------------------------------------------
     messagebox.showinfo("Resultado de la corrección", "El ejercicio supera todos los tests.")
 
 
@@ -384,108 +350,101 @@ def _corregir_ejercicio_funcion(codigo, ejercicio, lista_tests):
 
     for idx, test in enumerate(lista_tests, start=1):
 
+        nombre_funcion = test["funcName"]
+        args = test.get("args", [])
+        stdin_val = test.get("stdin", "")
+
         # ---------------------------------------------------------
-        # 1. Ejecutar la función del alumno
+        # 1. Ejecutar función del alumno
         # ---------------------------------------------------------
         try:
             salida = _ejecutar_funcion(
                 codigo,
-                test["funcName"],
-                test.get("args", []),
-                test.get("kwargs", {})
+                nombre_funcion,
+                args
             )
         except Exception as e:
             msg = (
                 "La función NO supera el test.\n\n"
                 f"Error al ejecutar la función: {e}\n\n"
-                f"FUNCION: {test['funcName']}\n"
-                f"ARGUMENTOS: {test.get('args', [])}\n"
+                f"FUNCION: {nombre_funcion}\n"
+                f"ARGUMENTOS: {args}\n"
             )
             _mostrar_error_scroll("Resultado de la corrección", msg)
             return
 
-        # ---------------------------------------------------------
-        # 2. Extraer datos obtenidos
-        # ---------------------------------------------------------
-        pantalla_obtenida = salida.get("stdout", "")
-        valor_obtenido = salida.get("return", None)
-
-        pantalla_correcta = test.get("stdout", "")
-        valor_correcto = test.get("return", None)
-
-        # ---------------------------------------------------------
-        # 3. Comparación de pantalla
-        # ---------------------------------------------------------
-        ok_pantalla, dif_pantalla = _comparar_resultados_pantalla(
-            pantalla_obtenida,
-            pantalla_correcta
-        )
-
-        # ---------------------------------------------------------
-        # 4. Comparación del valor retornado
-        # ---------------------------------------------------------
-        ok_valor = (valor_obtenido == valor_correcto)
-        dif_valor = []
-
-        if not ok_valor:
-            dif_valor.append(
-                f"Valor retornado incorrecto. Obtenido: {valor_obtenido}, Correcto: {valor_correcto}"
-            )
-
-        # ---------------------------------------------------------
-        # 5. Comparación de ficheros (si aplica)
-        # ---------------------------------------------------------
-        filesIni = test.get("files_ini", {})
-        filesEnd_exp = test.get("files_exp", {})
+        stdout_obt = salida.get("stdout", "")
+        ret_obt = salida.get("return", None)
         files_end = salida.get("files", {})
 
-        ok_files, dif_files = _comparar_ficheros(files_end, filesEnd_exp)
+        stdout_exp = test.get("stdout", "")
+        ret_exp = test.get("return", None)
+        files_end_exp = test.get("files", {})
 
-        # Convertir diccionarios a texto
-        filesIni_text = "\n".join(f"{k} → {v}" for k, v in filesIni.items()) or "(sin ficheros)"
+        # Textos de ficheros (aunque casi nunca se usan en funciones)
+        filesIni_text = "(sin ficheros)"
         files_end_text = "\n".join(f"{k} → {v}" for k, v in files_end.items()) or "(sin ficheros)"
-        filesEnd_exp_text = "\n".join(f"{k} → {v}" for k, v in filesEnd_exp.items()) or "(sin ficheros)"
+        filesEnd_exp_text = "\n".join(f"{k} → {v}" for k, v in files_end_exp.items()) or "(sin ficheros)"
 
         # ---------------------------------------------------------
-        # 6. ¿Todo OK?
+        # 2. Comparación pantalla
         # ---------------------------------------------------------
-        if ok_pantalla and ok_valor and ok_files:
+        ok_pantalla, dif_pantalla = _comparar_resultados_pantalla(stdout_obt, stdout_exp)
+
+        # ---------------------------------------------------------
+        # 3. Comparación return
+        # ---------------------------------------------------------
+        ok_return = (ret_obt == ret_exp)
+        dif_return = []
+
+        if not ok_return:
+            dif_return.append(f"Valor retornado incorrecto. Obtenido: {ret_obt}, Correcto: {ret_exp}")
+
+        # ---------------------------------------------------------
+        # 4. Comparación ficheros
+        # ---------------------------------------------------------
+        ok_files, dif_files = _comparar_ficheros(files_end, files_end_exp)
+
+        # ---------------------------------------------------------
+        # 5. ¿Todo OK?
+        # ---------------------------------------------------------
+        if ok_pantalla and ok_return and ok_files:
             continue
 
         # ---------------------------------------------------------
-        # 7. DIFERENCIAS DETECTADAS
+        # 6. DIFERENCIAS DETECTADAS
         # ---------------------------------------------------------
-        diferencias_detectadas = "\n".join(dif_pantalla + dif_valor + dif_files)
+        diferencias_detectadas = "\n".join(dif_pantalla + dif_return + dif_files)
 
         # ---------------------------------------------------------
-        # 8. Mensaje unificado (versión definitiva)
+        # 7. MENSAJE FINAL UNIFICADO
         # ---------------------------------------------------------
         msg = (
             "La función NO supera el test.\n\n"
             "DIFERENCIAS DETECTADAS:\n"
             + diferencias_detectadas
             + "\n\n"
-            f"FUNCION: {test['function']}\n"
-            f"ARGUMENTOS: {test.get('args', [])}\n\n"
+            f"FUNCION: {nombre_funcion}\n"
+            f"ARGUMENTOS: {args}\n\n"
             "▶ CONTEXTO INICIAL\n"
             "─────── Teclado ───────\n"
-            f"{test.get('stdin', '')}\n"
+            f"{stdin_val}\n"
             "─────── Ficheros ───────\n"
             + filesIni_text
             + "\n\n"
             "▶ RESULTADO OBTENIDO\n"
             "─────── return ───────\n"
-            f"{valor_obtenido!r}\n"
+            f"{ret_obt!r}\n"
             "─────── Pantalla ───────\n"
-            f"{pantalla_obtenida}\n"
+            f"{stdout_obt}\n"
             "─────── Ficheros ───────\n"
             + files_end_text
             + "\n\n"
             "▶ RESULTADO CORRECTO\n"
             "─────── return ───────\n"
-            f"{valor_correcto!r}\n"
+            f"{ret_exp!r}\n"
             "─────── Pantalla ───────\n"
-            f"{pantalla_correcta}\n"
+            f"{stdout_exp}\n"
             "─────── Ficheros ───────\n"
             + filesEnd_exp_text
         )
@@ -493,12 +452,7 @@ def _corregir_ejercicio_funcion(codigo, ejercicio, lista_tests):
         _mostrar_error_scroll("Resultado de la corrección", msg)
         return
 
-    # ---------------------------------------------------------
-    # 9. Si ha superado todos los tests
-    # ---------------------------------------------------------
     messagebox.showinfo("Resultado de la corrección", "El ejercicio supera todos los tests.")
-
-
 
 
 # -------------------------------------------------------------------------
