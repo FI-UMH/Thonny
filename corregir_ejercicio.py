@@ -48,25 +48,35 @@ _TESTS_CACHE = None
 # -------------------------------------------------------------------------
 
 
+from tkinter import Toplevel, Text, Scrollbar, Frame
+import tkinter.font as tkfont
+
 def _mostrar_error_scroll(titulo, mensaje):
-    """Ventana de texto con scroll para mostrar informes largos."""
     win = Toplevel()
     win.title(titulo)
     win.geometry("820x520")
 
-    txt = Text(win, wrap="none", font=("Consolas", 10))
-    txt.pack(fill="both", expand=True)
+    # Frame contenedor para texto + scroll vertical
+    frame = Frame(win)
+    frame.pack(fill="both", expand=True)
 
-    sy = Scrollbar(win, orient="vertical", command=txt.yview)
+    txt = Text(frame, wrap="none", font=("Consolas", 10))
+    txt.pack(side="left", fill="both", expand=True)
+
+    # Scroll vertical
+    sy = Scrollbar(frame, orient="vertical", command=txt.yview)
     sy.pack(side="right", fill="y")
     txt.configure(yscrollcommand=sy.set)
 
+    # Scroll horizontal
     sx = Scrollbar(win, orient="horizontal", command=txt.xview)
     sx.pack(side="bottom", fill="x")
     txt.configure(xscrollcommand=sx.set)
 
+    # Insertar mensaje
     txt.insert("1.0", mensaje)
 
+    # Negrita en títulos
     base = tkfont.Font(font=txt["font"])
     bold = base.copy()
     bold.configure(weight="bold")
@@ -82,7 +92,23 @@ def _mostrar_error_scroll(titulo, mensaje):
             txt.tag_add("titulo", pos, end)
             start = end
 
+    # Habilitar scroll con la rueda del ratón
+    def _on_mousewheel(event):
+        # Windows / macOS
+        txt.yview_scroll(-int(event.delta / 120), "units")
+
+    def _on_mousewheel_linux_up(event):
+        txt.yview_scroll(-1, "units")
+
+    def _on_mousewheel_linux_down(event):
+        txt.yview_scroll(1, "units")
+
+    txt.bind("<MouseWheel>", _on_mousewheel)        # Windows / macOS
+    txt.bind("<Button-4>", _on_mousewheel_linux_up)   # Linux
+    txt.bind("<Button-5>", _on_mousewheel_linux_down) # Linux
+
     txt.config(state="disabled")
+
 
 
 # ======================================================================
