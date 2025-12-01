@@ -94,9 +94,8 @@ def _mostrar_error_scroll(titulo, mensaje):
             txt.tag_add("titulo", pos, end)
             start = end
             
-    for palabra in ("───────Argumentos────────", "─────Retorno función─────",
-                    "────────Teclado──────────", "────────Pantalla─────────", 
-                    "────────Ficheros─────────"):
+    for palabra in ("─Argumentos", "─Retorno función","─Teclado",
+                    "─Pantalla", "─Ficheros","─"):
         start = "1.0"
         while True:
             pos = txt.search(palabra, start, stopindex="end")
