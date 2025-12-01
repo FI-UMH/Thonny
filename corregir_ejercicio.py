@@ -33,7 +33,7 @@ import threading
 from collections import Counter
 
 from thonny import get_workbench
-from tkinter import messagebox, Toplevel, Text, Scrollbar
+from tkinter import messagebox, Toplevel, Text, Scrollbar, Frame
 import tkinter.font as tkfont
 
 # -------------------------------------------------------------------------
@@ -80,10 +80,22 @@ def _mostrar_error_scroll(titulo, mensaje):
     base = tkfont.Font(font=txt["font"])
     bold = base.copy()
     bold.configure(weight="bold")
-    txt.tag_configure("titulo", font=bold, foreground="red")
+    txt.tag_configure("titulo", font=bold, foreground="salmon4")
+    txt.tag_configure("subtitulo", font=bold, foreground="salmon3")
 
-    for palabra in ("CONTEXTO INICIAL", "RESULTADO OBTENIDO", "RESULTADO CORRECTO", 
-                    "ERRORES DETECTADOS", "Argumentos", "Teclado", "Pantalla", "Ficheros"):
+    for palabra in ("CONTEXTO INICIAL", "RESULTADO OBTENIDO", "RESULTADO CORRECTO",
+                    "ERRORES DETECTADOS" ):
+        start = "1.0"
+        while True:
+            pos = txt.search(palabra, start, stopindex="end")
+            if not pos:
+                break
+            end = f"{pos}+{len(palabra)}c"
+            txt.tag_add("titulo", pos, end)
+            start = end
+            
+    for palabra in ("Argumentos", "Retorno función",
+                    "Teclado", "Pantalla", "Ficheros"):
         start = "1.0"
         while True:
             pos = txt.search(palabra, start, stopindex="end")
@@ -573,26 +585,26 @@ def _mensaje_error_programa(errores, test, stdout_obt, files_end_text):
     partes.append("")
 
     if errores:
-        partes.append("ERRORES DETECTADOS:")
+        partes.append("▶ ERRORES DETECTADOS:")
         for err in errores:
             partes.append(f"- {err}")
         partes.append("")
 
-    partes.append("CONTEXTO INICIAL")
+    partes.append("▶ CONTEXTO INICIAL")
     partes.append("Teclado")
     partes.append(test.get("stdin", ""))
     partes.append("Ficheros")
     partes.append(_formatear_dict_ficheros(files_ini))
     partes.append("")
 
-    partes.append("RESULTADO OBTENIDO")
+    partes.append("▶ RESULTADO OBTENIDO")
     partes.append("Pantalla")
     partes.append(stdout_obt)
     partes.append("Ficheros")
     partes.append(files_end_text)
     partes.append("")
 
-    partes.append("RESULTADO CORRECTO")
+    partes.append("▶ RESULTADO CORRECTO")
     partes.append("Pantalla")
     partes.append(stdout_ok)
     partes.append("Ficheros")
@@ -612,12 +624,12 @@ def _mensaje_error_funcion(errores, test, stdout_obt, files_end_text, ret_obt):
     partes.append("")
 
     if errores:
-        partes.append("ERRORES DETECTADOS:")
+        partes.append("▶ ERRORES DETECTADOS:")
         for err in errores:
             partes.append(f"- {err}")
         partes.append("")
 
-    partes.append("CONTEXTO INICIAL")
+    partes.append("▶ CONTEXTO INICIAL")
     partes.append("Argumentos")
     partes.append(repr(test.get("args", [])))
     partes.append("Teclado")
@@ -626,7 +638,7 @@ def _mensaje_error_funcion(errores, test, stdout_obt, files_end_text, ret_obt):
     partes.append(_formatear_dict_ficheros(files_ini))
     partes.append("")
 
-    partes.append("RESULTADO OBTENIDO")
+    partes.append("▶ RESULTADO OBTENIDO")
     partes.append("Retorno función")
     partes.append(repr(ret_obt))
     partes.append("Pantalla")
@@ -635,7 +647,7 @@ def _mensaje_error_funcion(errores, test, stdout_obt, files_end_text, ret_obt):
     partes.append(files_end_text)
     partes.append("")
 
-    partes.append("RESULTADO CORRECTO")
+    partes.append("▶ RESULTADO CORRECTO")
     partes.append("Retorno función")
     partes.append(repr(ret_ok))
     partes.append("Pantalla")
@@ -732,10 +744,12 @@ def corregir_ejercicio(dni, ejercicio, fuente, lista_tests):
                     errores, test, stdout_obt, files_end_text
                 )
                 _mostrar_error_scroll("Error en el test", msg)
+                '''
                 messagebox.showerror(
                     "Resultado de la corrección",
                     f"El ejercicio no supera el test {idx} de {total}.",
                 )
+                '''
                 return
 
         else:  # tipo == "funcion"
@@ -799,10 +813,12 @@ def corregir_ejercicio(dni, ejercicio, fuente, lista_tests):
                     errores, test, stdout_obt, files_end_text, ret_obt
                 )
                 _mostrar_error_scroll("Error en el test", msg)
+                '''
                 messagebox.showerror(
                     "Resultado de la corrección",
                     f"El ejercicio no supera el test {idx} de {total}.",
                 )
+                '''
                 return
 
     # -----------------------------------------------------------------
