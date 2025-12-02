@@ -893,8 +893,11 @@ def main():
         return
 
     tests = _descargar_tests()
-    if is None:
-        # _descargar_tests ya muestra el error
+    if tests is None:
+        messagebox.showerror(
+        "Error",
+        "No se pudo descargar tests.json desde GitHub."
+        )
         return
 
     if ejercicio not in tests:
