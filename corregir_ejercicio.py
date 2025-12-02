@@ -855,7 +855,7 @@ def _corregir_ejercicio_funcion(dni, ejercicio, fuente, lista_tests):
 
 def main():
     global _TESTS_CACHE
-    _TEST_CACHE = None
+    _TESTS_CACHE = None
     wb = get_workbench()
     ed = wb.get_editor_notebook().get_current_editor()
 
