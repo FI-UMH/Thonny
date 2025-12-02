@@ -908,5 +908,5 @@ def main():
         return
 
     lista_tests = tests[ejercicio]
-    print(tests[ejercicio])  #########################################################################
+    #print(tests[ejercicio])  #########################################################################
     corregir_ejercicio(dni, ejercicio, fuente, lista_tests)
