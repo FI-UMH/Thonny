@@ -1,0 +1,982 @@
+{
+  "f000": [
+    {
+      "funcName": "f000",
+      "args": [
+        "nombre.txt",
+        "salida1.txt"
+      ],
+      "stdin": "1\n2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Martinez"
+      },
+      "return_ok": [
+        "nombre.txt",
+        "salida1.txt",
+        "1",
+        "2"
+      ],
+      "stdout_ok": "(1) (2)\n",
+      "filesEnd_ok": {
+        "salida1.txt": "Alejandro",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "nombre.txt",
+        "salida1.txt"
+      ],
+      "stdin": "1\n2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Lopez"
+      },
+      "return_ok": [
+        "nombre.txt",
+        "salida1.txt",
+        "1",
+        "2"
+      ],
+      "stdout_ok": "(1) (2)\n",
+      "filesEnd_ok": {
+        "salida1.txt": "Alejandro",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "nombre.txt",
+        "salida1.txt"
+      ],
+      "stdin": "1\n2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Martinez"
+      },
+      "return_ok": [
+        "nombre.txt",
+        "salida1.txt",
+        "1",
+        "2"
+      ],
+      "stdout_ok": "(1) (2)\n",
+      "filesEnd_ok": {
+        "salida1.txt": "Pepe",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "nombre.txt",
+        "salida1.txt"
+      ],
+      "stdin": "1\n2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Lopez"
+      },
+      "return_ok": [
+        "nombre.txt",
+        "salida1.txt",
+        "1",
+        "2"
+      ],
+      "stdout_ok": "(1) (2)\n",
+      "filesEnd_ok": {
+        "salida1.txt": "Pepe",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "nombre.txt",
+        "salida1.txt"
+      ],
+      "stdin": "-1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Martinez"
+      },
+      "return_ok": [
+        "nombre.txt",
+        "salida1.txt",
+        "-1",
+        "-2"
+      ],
+      "stdout_ok": "(-1) (-2)\n",
+      "filesEnd_ok": {
+        "salida1.txt": "Alejandro",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "nombre.txt",
+        "salida1.txt"
+      ],
+      "stdin": "-1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Lopez"
+      },
+      "return_ok": [
+        "nombre.txt",
+        "salida1.txt",
+        "-1",
+        "-2"
+      ],
+      "stdout_ok": "(-1) (-2)\n",
+      "filesEnd_ok": {
+        "salida1.txt": "Alejandro",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "nombre.txt",
+        "salida1.txt"
+      ],
+      "stdin": "-1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Martinez"
+      },
+      "return_ok": [
+        "nombre.txt",
+        "salida1.txt",
+        "-1",
+        "-2"
+      ],
+      "stdout_ok": "(-1) (-2)\n",
+      "filesEnd_ok": {
+        "salida1.txt": "Pepe",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "nombre.txt",
+        "salida1.txt"
+      ],
+      "stdin": "-1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Lopez"
+      },
+      "return_ok": [
+        "nombre.txt",
+        "salida1.txt",
+        "-1",
+        "-2"
+      ],
+      "stdout_ok": "(-1) (-2)\n",
+      "filesEnd_ok": {
+        "salida1.txt": "Pepe",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "nombre.txt",
+        "salida2.txt"
+      ],
+      "stdin": "1\n2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Martinez"
+      },
+      "return_ok": [
+        "nombre.txt",
+        "salida2.txt",
+        "1",
+        "2"
+      ],
+      "stdout_ok": "(1) (2)\n",
+      "filesEnd_ok": {
+        "salida2.txt": "Alejandro",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "nombre.txt",
+        "salida2.txt"
+      ],
+      "stdin": "1\n2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Lopez"
+      },
+      "return_ok": [
+        "nombre.txt",
+        "salida2.txt",
+        "1",
+        "2"
+      ],
+      "stdout_ok": "(1) (2)\n",
+      "filesEnd_ok": {
+        "salida2.txt": "Alejandro",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "nombre.txt",
+        "salida2.txt"
+      ],
+      "stdin": "1\n2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Martinez"
+      },
+      "return_ok": [
+        "nombre.txt",
+        "salida2.txt",
+        "1",
+        "2"
+      ],
+      "stdout_ok": "(1) (2)\n",
+      "filesEnd_ok": {
+        "salida2.txt": "Pepe",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "nombre.txt",
+        "salida2.txt"
+      ],
+      "stdin": "1\n2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Lopez"
+      },
+      "return_ok": [
+        "nombre.txt",
+        "salida2.txt",
+        "1",
+        "2"
+      ],
+      "stdout_ok": "(1) (2)\n",
+      "filesEnd_ok": {
+        "salida2.txt": "Pepe",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "nombre.txt",
+        "salida2.txt"
+      ],
+      "stdin": "-1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Martinez"
+      },
+      "return_ok": [
+        "nombre.txt",
+        "salida2.txt",
+        "-1",
+        "-2"
+      ],
+      "stdout_ok": "(-1) (-2)\n",
+      "filesEnd_ok": {
+        "salida2.txt": "Alejandro",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "nombre.txt",
+        "salida2.txt"
+      ],
+      "stdin": "-1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Lopez"
+      },
+      "return_ok": [
+        "nombre.txt",
+        "salida2.txt",
+        "-1",
+        "-2"
+      ],
+      "stdout_ok": "(-1) (-2)\n",
+      "filesEnd_ok": {
+        "salida2.txt": "Alejandro",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "nombre.txt",
+        "salida2.txt"
+      ],
+      "stdin": "-1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Martinez"
+      },
+      "return_ok": [
+        "nombre.txt",
+        "salida2.txt",
+        "-1",
+        "-2"
+      ],
+      "stdout_ok": "(-1) (-2)\n",
+      "filesEnd_ok": {
+        "salida2.txt": "Pepe",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "nombre.txt",
+        "salida2.txt"
+      ],
+      "stdin": "-1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Lopez"
+      },
+      "return_ok": [
+        "nombre.txt",
+        "salida2.txt",
+        "-1",
+        "-2"
+      ],
+      "stdout_ok": "(-1) (-2)\n",
+      "filesEnd_ok": {
+        "salida2.txt": "Pepe",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "apellido.txt",
+        "salida1.txt"
+      ],
+      "stdin": "1\n2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Martinez"
+      },
+      "return_ok": [
+        "apellido.txt",
+        "salida1.txt",
+        "1",
+        "2"
+      ],
+      "stdout_ok": "(1) (2)\n",
+      "filesEnd_ok": {
+        "salida1.txt": "Martinez",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "apellido.txt",
+        "salida1.txt"
+      ],
+      "stdin": "1\n2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Lopez"
+      },
+      "return_ok": [
+        "apellido.txt",
+        "salida1.txt",
+        "1",
+        "2"
+      ],
+      "stdout_ok": "(1) (2)\n",
+      "filesEnd_ok": {
+        "salida1.txt": "Lopez",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "apellido.txt",
+        "salida1.txt"
+      ],
+      "stdin": "1\n2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Martinez"
+      },
+      "return_ok": [
+        "apellido.txt",
+        "salida1.txt",
+        "1",
+        "2"
+      ],
+      "stdout_ok": "(1) (2)\n",
+      "filesEnd_ok": {
+        "salida1.txt": "Martinez",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "apellido.txt",
+        "salida1.txt"
+      ],
+      "stdin": "1\n2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Lopez"
+      },
+      "return_ok": [
+        "apellido.txt",
+        "salida1.txt",
+        "1",
+        "2"
+      ],
+      "stdout_ok": "(1) (2)\n",
+      "filesEnd_ok": {
+        "salida1.txt": "Lopez",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "apellido.txt",
+        "salida1.txt"
+      ],
+      "stdin": "-1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Martinez"
+      },
+      "return_ok": [
+        "apellido.txt",
+        "salida1.txt",
+        "-1",
+        "-2"
+      ],
+      "stdout_ok": "(-1) (-2)\n",
+      "filesEnd_ok": {
+        "salida1.txt": "Martinez",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "apellido.txt",
+        "salida1.txt"
+      ],
+      "stdin": "-1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Lopez"
+      },
+      "return_ok": [
+        "apellido.txt",
+        "salida1.txt",
+        "-1",
+        "-2"
+      ],
+      "stdout_ok": "(-1) (-2)\n",
+      "filesEnd_ok": {
+        "salida1.txt": "Lopez",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "apellido.txt",
+        "salida1.txt"
+      ],
+      "stdin": "-1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Martinez"
+      },
+      "return_ok": [
+        "apellido.txt",
+        "salida1.txt",
+        "-1",
+        "-2"
+      ],
+      "stdout_ok": "(-1) (-2)\n",
+      "filesEnd_ok": {
+        "salida1.txt": "Martinez",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "apellido.txt",
+        "salida1.txt"
+      ],
+      "stdin": "-1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Lopez"
+      },
+      "return_ok": [
+        "apellido.txt",
+        "salida1.txt",
+        "-1",
+        "-2"
+      ],
+      "stdout_ok": "(-1) (-2)\n",
+      "filesEnd_ok": {
+        "salida1.txt": "Lopez",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "apellido.txt",
+        "salida2.txt"
+      ],
+      "stdin": "1\n2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Martinez"
+      },
+      "return_ok": [
+        "apellido.txt",
+        "salida2.txt",
+        "1",
+        "2"
+      ],
+      "stdout_ok": "(1) (2)\n",
+      "filesEnd_ok": {
+        "salida2.txt": "Martinez",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "apellido.txt",
+        "salida2.txt"
+      ],
+      "stdin": "1\n2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Lopez"
+      },
+      "return_ok": [
+        "apellido.txt",
+        "salida2.txt",
+        "1",
+        "2"
+      ],
+      "stdout_ok": "(1) (2)\n",
+      "filesEnd_ok": {
+        "salida2.txt": "Lopez",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "apellido.txt",
+        "salida2.txt"
+      ],
+      "stdin": "1\n2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Martinez"
+      },
+      "return_ok": [
+        "apellido.txt",
+        "salida2.txt",
+        "1",
+        "2"
+      ],
+      "stdout_ok": "(1) (2)\n",
+      "filesEnd_ok": {
+        "salida2.txt": "Martinez",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "apellido.txt",
+        "salida2.txt"
+      ],
+      "stdin": "1\n2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Lopez"
+      },
+      "return_ok": [
+        "apellido.txt",
+        "salida2.txt",
+        "1",
+        "2"
+      ],
+      "stdout_ok": "(1) (2)\n",
+      "filesEnd_ok": {
+        "salida2.txt": "Lopez",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "apellido.txt",
+        "salida2.txt"
+      ],
+      "stdin": "-1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Martinez"
+      },
+      "return_ok": [
+        "apellido.txt",
+        "salida2.txt",
+        "-1",
+        "-2"
+      ],
+      "stdout_ok": "(-1) (-2)\n",
+      "filesEnd_ok": {
+        "salida2.txt": "Martinez",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "apellido.txt",
+        "salida2.txt"
+      ],
+      "stdin": "-1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Lopez"
+      },
+      "return_ok": [
+        "apellido.txt",
+        "salida2.txt",
+        "-1",
+        "-2"
+      ],
+      "stdout_ok": "(-1) (-2)\n",
+      "filesEnd_ok": {
+        "salida2.txt": "Lopez",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "apellido.txt",
+        "salida2.txt"
+      ],
+      "stdin": "-1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Martinez"
+      },
+      "return_ok": [
+        "apellido.txt",
+        "salida2.txt",
+        "-1",
+        "-2"
+      ],
+      "stdout_ok": "(-1) (-2)\n",
+      "filesEnd_ok": {
+        "salida2.txt": "Martinez",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "funcName": "f000",
+      "args": [
+        "apellido.txt",
+        "salida2.txt"
+      ],
+      "stdin": "-1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Lopez"
+      },
+      "return_ok": [
+        "apellido.txt",
+        "salida2.txt",
+        "-1",
+        "-2"
+      ],
+      "stdout_ok": "(-1) (-2)\n",
+      "filesEnd_ok": {
+        "salida2.txt": "Lopez",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Pepe"
+      }
+    }
+  ],
+  "p000": [
+    {
+      "stdin": "1\n-1\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Martinez"
+      },
+      "stdout_ok": "1\n-1\n(1) (-1)\n",
+      "filesEnd_ok": {
+        "salida.txt": "Alejandro Martinez",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "stdin": "1\n-1\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Lopez"
+      },
+      "stdout_ok": "1\n-1\n(1) (-1)\n",
+      "filesEnd_ok": {
+        "salida.txt": "Alejandro Lopez",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "stdin": "1\n-1\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Martinez"
+      },
+      "stdout_ok": "1\n-1\n(1) (-1)\n",
+      "filesEnd_ok": {
+        "salida.txt": "Pepe Martinez",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "stdin": "1\n-1\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Lopez"
+      },
+      "stdout_ok": "1\n-1\n(1) (-1)\n",
+      "filesEnd_ok": {
+        "salida.txt": "Pepe Lopez",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "stdin": "1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Martinez"
+      },
+      "stdout_ok": "1\n-2\n(1) (-2)\n",
+      "filesEnd_ok": {
+        "salida.txt": "Alejandro Martinez",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "stdin": "1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Lopez"
+      },
+      "stdout_ok": "1\n-2\n(1) (-2)\n",
+      "filesEnd_ok": {
+        "salida.txt": "Alejandro Lopez",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "stdin": "1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Martinez"
+      },
+      "stdout_ok": "1\n-2\n(1) (-2)\n",
+      "filesEnd_ok": {
+        "salida.txt": "Pepe Martinez",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "stdin": "1\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Lopez"
+      },
+      "stdout_ok": "1\n-2\n(1) (-2)\n",
+      "filesEnd_ok": {
+        "salida.txt": "Pepe Lopez",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "stdin": "2\n-1\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Martinez"
+      },
+      "stdout_ok": "2\n-1\n(2) (-1)\n",
+      "filesEnd_ok": {
+        "salida.txt": "Alejandro Martinez",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "stdin": "2\n-1\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Lopez"
+      },
+      "stdout_ok": "2\n-1\n(2) (-1)\n",
+      "filesEnd_ok": {
+        "salida.txt": "Alejandro Lopez",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "stdin": "2\n-1\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Martinez"
+      },
+      "stdout_ok": "2\n-1\n(2) (-1)\n",
+      "filesEnd_ok": {
+        "salida.txt": "Pepe Martinez",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "stdin": "2\n-1\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Lopez"
+      },
+      "stdout_ok": "2\n-1\n(2) (-1)\n",
+      "filesEnd_ok": {
+        "salida.txt": "Pepe Lopez",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "stdin": "2\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Martinez"
+      },
+      "stdout_ok": "2\n-2\n(2) (-2)\n",
+      "filesEnd_ok": {
+        "salida.txt": "Alejandro Martinez",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "stdin": "2\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Alejandro",
+        "apellido.txt": "Lopez"
+      },
+      "stdout_ok": "2\n-2\n(2) (-2)\n",
+      "filesEnd_ok": {
+        "salida.txt": "Alejandro Lopez",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Alejandro"
+      }
+    },
+    {
+      "stdin": "2\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Martinez"
+      },
+      "stdout_ok": "2\n-2\n(2) (-2)\n",
+      "filesEnd_ok": {
+        "salida.txt": "Pepe Martinez",
+        "apellido.txt": "Martinez",
+        "nombre.txt": "Pepe"
+      }
+    },
+    {
+      "stdin": "2\n-2\n",
+      "filesIni": {
+        "nombre.txt": "Pepe",
+        "apellido.txt": "Lopez"
+      },
+      "stdout_ok": "2\n-2\n(2) (-2)\n",
+      "filesEnd_ok": {
+        "salida.txt": "Pepe Lopez",
+        "apellido.txt": "Lopez",
+        "nombre.txt": "Pepe"
+      }
+    }
+  ]
+}
