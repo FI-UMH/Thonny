@@ -893,8 +893,7 @@ def main():
         return
 
     tests = _descargar_tests()
-    print(tests[ejercicio])  #########################################################################
-    if not tests:
+    if is None:
         # _descargar_tests ya muestra el error
         return
 
@@ -906,4 +905,5 @@ def main():
         return
 
     lista_tests = tests[ejercicio]
+    print(tests[ejercicio])  #########################################################################
     corregir_ejercicio(dni, ejercicio, fuente, lista_tests)
