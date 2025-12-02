@@ -893,6 +893,7 @@ def main():
         return
 
     tests = _descargar_tests()
+    print(tests[ejercicio])  #########################################################################
     if not tests:
         # _descargar_tests ya muestra el error
         return
